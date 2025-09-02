@@ -19,6 +19,11 @@ class Pythagoreon(Scene):
 
         self.congruence()
         self.sas()
+
+        self.parallelogram()
+        self.equal_area()
+
+        self.final_steps()
     
     def setup(self):
         self.plane, self.unitSize = mt.grid(25)
@@ -136,7 +141,7 @@ class Pythagoreon(Scene):
         self.wait(5)
 
         t2 = mt.text(
-            r"$\angle CAB + \angle BAG = 180^{\circ}$, \\ therefore, $CG$ is a straight line.",
+            r"$\angle CAB + \angle BAG = 180^{\circ}$, \\ therefore, $GC$ is a straight line.",
             mt.toScreen(self.plane, 5, -1.5)
         )
         self.play(FadeIn(t2))
@@ -152,15 +157,27 @@ class Pythagoreon(Scene):
         self.play(FadeIn(t1))
         self.wait(5)
 
-        botSqTopLeft, _, botSqBotRight, _ = self.squares[2].get_vertices()[:4]
-
+        botSqTopLeft, botSqBotLeft, botSqBotRight, botSqTopRight = self.squares[2].get_vertices()[:4]
+        
         points = [
             self.topP,
             np.array([self.topP[0], botSqBotRight[1], 0])
         ]
         l = Line(*points, color=BLUE)
         self.play(Create(l), run_time=1)
-        self.wait(1)
+
+        pm, pos = mt.parallel_mark(botSqTopLeft, botSqBotLeft, self.unitSize, BLUE, 0.5)
+        for p in pm:
+            self.play(Create(p), run_time=0.5)
+
+        pm, _ = mt.parallel_mark(points[0], points[1], self.unitSize, BLUE, 0.5, pos=[self.topP[0], pos[1], 0])
+        for p in pm:
+            self.play(Create(p), run_time=0.5)
+
+        pm, _ = mt.parallel_mark(botSqTopRight, botSqBotRight, self.unitSize, BLUE, 0.5)
+        for p in pm:
+            self.play(Create(p), run_time=0.5)
+        self.wait(3)
 
         t2 = mt.text(
             r"It will perpendicularly intersect $BC$ and $DE$ \\ at $K$ and $L$, respectively.",
@@ -169,7 +186,7 @@ class Pythagoreon(Scene):
         self.play(FadeIn(t2))
         self.wait(5)
 
-        intersection = mt.segment_intersection(self.topP, [self.topP[0], botSqBotRight[1], 0], self.leftP, self.rightP)
+        intersection = mt.segment_intersection(points[0], points[1], self.leftP, self.rightP)
 
         if LABELS:
             lbl = mt.label_point(intersection, "K", self.sVecs['UP_LEFT'], 0.3)
@@ -303,7 +320,7 @@ class Pythagoreon(Scene):
         angle2 = Angle(
             Line(self.leftP, self.rightP),
             Line(self.leftP, leftSqTopLeft),
-            radius=0.5,
+            radius=0.4,
             color=BLUE
         )
 
@@ -314,17 +331,12 @@ class Pythagoreon(Scene):
         
     def sas(self):
         group = Group()
-        def list_statements(text):
-            for i, tex in enumerate(text):
-                t = mt.text(
-                    tex,
-                    mt.toScreen(self.plane, 5, -i)
-                )
-                group.add(t)
-                self.play(FadeIn(t), run_time=0.5)
-                self.wait(0.5)
-
-        list_statements([r"$AB = FB$", r"$BD = BC$", r"$\angle ABD = \angle FBC$"])
+        mt.list_statements(
+            [r"$AB = FB$", r"$BD = BC$", r"$\angle ABD = \angle FBC$"],
+            group,
+            self,
+            time=0.5
+        )
         self.wait(3)
 
         t = mt.text(
@@ -336,3 +348,85 @@ class Pythagoreon(Scene):
         self.wait(5)
 
         self.play(FadeOut(group))
+    
+    def parallelogram(self):
+        t1 = mt.text(
+            r"$BD \parallel KL$, therefore, rectangle $BDLK$ \\ is also a parallelogram.",
+            mt.toScreen(self.plane, 5, 0)
+        )
+        self.play(FadeIn(t1))
+        self.wait(5)
+
+        t2 = mt.text(
+            r"Rectangle $BDLK$ and $\triangle ABD$ share \\ the base $BD$ and altitude $BK$.",
+            mt.toScreen(self.plane, 5, -2)
+        )
+        self.play(FadeIn(t2))
+        self.wait(5)
+
+        t3 = mt.text(
+            r"$\Rightarrow$ Area(rectangle $BDLM$) = 2 $\times$ Area($\triangle ABD$).",
+            mt.toScreen(self.plane, 5, -4)
+        )
+        self.play(FadeIn(t3))
+        self.wait(5)
+
+        self.play(FadeOut(Group(t1, t2, t3)))
+
+        t1 = mt.text(
+            r"Similarly, $FB \parallel GC$, therefore, square $BAGF$ \\ is also a parallelogram.",
+            mt.toScreen(self.plane, 5, 0)
+        )
+        self.play(FadeIn(t1))
+        self.wait(5)
+
+        t2 = mt.text(
+            r"Square $BAGF$ and $\triangle FBC$ share \\ the base $FB$ and altitude $AB$.",
+            mt.toScreen(self.plane, 5, -2)
+        )
+        self.play(FadeIn(t2))
+        self.wait(5)
+
+        t3 = mt.text(
+            r"$\Rightarrow$ Area(square $BAGF$) = 2 $\times$ Area($\triangle FBC$).",
+            mt.toScreen(self.plane, 5, -4)
+        )
+        self.play(FadeIn(t3))
+        self.wait(5)
+
+        self.play(FadeOut(Group(t1, t2, t3)))
+    
+    def equal_area(self):
+        t1 = mt.text(
+            r"Since $\triangle ABD \cong \triangle FBC$ by SAS, \\ Area($\triangle ABD$) = Area($\triangle FBC$).",
+            mt.toScreen(self.plane, 5, 0)
+        )
+        self.play(FadeIn(t1))
+        group = Group(t1)
+        self.wait(5)
+
+        mt.list_statements(
+            [r"Area(rectangle $BDLM$)", r"= 2 $\times$ Area($\triangle ABD$)", r"= 2 $\times$ Area($\triangle FBC$)", r"= Area(square $BAGF$)", r"= $AB^2$"],
+            group,
+            self,
+            -2
+        )
+        self.wait(5)
+
+        self.play(FadeOut(group))
+    
+    def final_steps(self):
+        t1 = mt.text(
+            r"Adding these two results, \\ $AB^2 + AC^2 = BD \times BK + KL \times KC$.",
+            mt.toScreen(self.plane, 5, 0)
+        )
+        self.play(FadeIn(t1))
+        group = Group(t1)
+        self.wait(5)
+
+        mt.list_statements(
+            [r"Since $BD = KL$", r"$BD \times BK + KL \times KC$", r"= $BD \times BK + BD \times KC$", r"= $BD(BK + KC)$", r"= $BD \times BC$"],
+            group,
+            self,
+            -2
+        )

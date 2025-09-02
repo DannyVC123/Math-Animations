@@ -107,9 +107,8 @@ class ManimTools():
     
     @staticmethod
     def congruent_mark(p1, p2, unit_size, color, mark_length, count=1, spacing=0.2):
-        x1, y1, _ = p1
-        x2, y2, _ = p2
-        mid = np.array([(x1 + x2) / 2, (y1 + y2) / 2, 0])
+        p1, p2 = np.array(p1), np.array(p2)
+        mid = (p1 + p2) / 2
 
         vec = p2 - p1
         vec_unit = (vec / np.linalg.norm(vec)) * unit_size
@@ -125,4 +124,35 @@ class ManimTools():
             marks.append(mark)
 
         return Group(*marks)
+    
+    @staticmethod
+    def parallel_mark(p1, p2, unit_size, color, size, pos=None):
+        height = np.sqrt(3) * size / 2 * unit_size
+
+        p1, p2 = np.array(p1), np.array(p2)
+        if pos is None:
+            pos = (p1 + p2) / 2
+
+        vec = p2 - p1
+        vec_unit = vec / np.linalg.norm(vec) * unit_size
+
+        perp = np.array([-vec_unit[1], vec_unit[0], 0])
+
+        base_left  = pos - vec_unit * (height / 2) - perp * (size / 2)
+        base_right = pos - vec_unit * (height / 2) + perp * (size / 2)
+        tip        = pos + vec_unit * (height / 2)
+
+        l1 = Line(base_left, tip, color=color)
+        l2 = Line(tip, base_right, color=color)
+        return [l1, l2], pos
+    
+    def list_statements(text, group, scene, start=0, time=1):
+        for i, tex in enumerate(text):
+            t = ManimTools.text(
+                tex,
+                ManimTools.toScreen(scene.plane, 5, start - i)
+            )
+            group.add(t)
+            scene.play(FadeIn(t), run_time=time)
+            scene.wait(2)
 
